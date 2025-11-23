@@ -1,0 +1,11 @@
+# Discord Bot Requirements
+py-cord>=2.0.0
+python-dotenv
+
+# Web Scraping for Vote Check (checkvote command)
+selenium
+beautifulsoup4
+webdriver-manager
+
+# Optional: Better HTML parsing
+lxml
