@@ -50,46 +50,69 @@ async def execute_cleanduplicates_action(
 
 
 async def _clean_player_duplicates(channel, player: str) -> int:
-    # 대상 플레이어의 모든 차단 로그 수집
-    found_messages = []
+    # 대상 플레이어의 모든 차단 로그를 UUID별로 그룹화하여 수집
+    uuid_groups = {}  # key: uuid, value: list of messages
+    
     async for message in channel.history(limit=MAX_SEARCH_LIMIT):
-        if _is_target_ban_log(message, player):
-            found_messages.append(message)
+        player_info = _extract_player_info(message)
+        if player_info:
+            nickname, uuid = player_info
+            # 닉네임이 일치하는 경우만 수집
+            if nickname.lower() == player.lower():
+                if uuid not in uuid_groups:
+                    uuid_groups[uuid] = []
+                uuid_groups[uuid].append(message)
     
-    # 중복이 없는 경우
-    if len(found_messages) <= 1:
-        return 0
+    # 각 UUID별로 중복 제거
+    total_deleted = 0
+    for uuid, messages in uuid_groups.items():
+        if len(messages) > 1:
+            duplicate_messages = _identify_duplicate_logs(messages)
+            deleted_count = await _delete_duplicate_messages(duplicate_messages)
+            total_deleted += deleted_count
     
-    # 최초 로그를 보존하고 나머지 삭제
-    duplicate_messages = _identify_duplicate_logs(found_messages)
-    deleted_count = await _delete_duplicate_messages(duplicate_messages)
-    
-    return deleted_count
+    return total_deleted
 
 
 async def _clean_all_duplicates(channel) -> Dict[str, int]:
-    # 모든 차단 로그를 수집하고 플레이어별로 그룹화
-    player_messages = {}
+    # 모든 차단 로그를 수집하고 (닉네임, UUID) 조합별로 그룹화
+    player_messages = {}  # key: (nickname, uuid), value: list of messages
     async for message in channel.history(limit=MAX_SEARCH_LIMIT):
-        player_name = _extract_player_name(message)
-        if player_name:
-            if player_name not in player_messages:
-                player_messages[player_name] = []
-            player_messages[player_name].append(message)
+        player_info = _extract_player_info(message)
+        if player_info:
+            nickname, uuid = player_info
+            key = f"{nickname}:{uuid}"
+            if key not in player_messages:
+                player_messages[key] = []
+            player_messages[key].append(message)
     
-    # 각 플레이어별로 중복 제거
+    # 각 (닉네임, UUID) 조합별로 중복 제거
     deletion_results = {}
-    for player_name, messages in player_messages.items():
+    for player_key, messages in player_messages.items():
         if len(messages) > 1:
             duplicate_messages = _identify_duplicate_logs(messages)
             deleted_count = await _delete_duplicate_messages(duplicate_messages)
             if deleted_count > 0:
-                deletion_results[player_name] = deleted_count
+                # 표시용으로 닉네임만 사용
+                nickname = player_key.split(':')[0]
+                if nickname in deletion_results:
+                    deletion_results[nickname] += deleted_count
+                else:
+                    deletion_results[nickname] = deleted_count
     
     return deletion_results
 
 
-def _extract_player_name(message: discord.Message) -> Optional[str]:
+def _extract_player_info(message: discord.Message) -> Optional[tuple[str, str]]:
+    """
+    메시지에서 플레이어 닉네임과 UUID를 추출합니다.
+    
+    Args:
+        message: Discord 메시지
+        
+    Returns:
+        Optional[tuple[str, str]]: (닉네임, UUID) 튜플, 추출 실패 시 None
+    """
     import re
     
     if not message.content:
@@ -99,12 +122,19 @@ def _extract_player_name(message: discord.Message) -> Optional[str]:
     if BAN_LOG_PATTERN not in message.content:
         return None
     
-    # 백틱으로 감싸진 플레이어명 추출
-    match = re.search(r'`([^`]+)`', message.content)
-    if match:
-        return match.group(1)
+    # 닉네임 추출 (백틱으로 감싸진 첫 번째 값)
+    nickname_match = re.search(r'`([^`]+)`', message.content)
+    if not nickname_match:
+        return None
+    nickname = nickname_match.group(1)
     
-    return None
+    # UUID 추출 (UUID 형식: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
+    uuid_match = re.search(r'([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})', message.content, re.IGNORECASE)
+    if not uuid_match:
+        return None
+    uuid = uuid_match.group(1)
+    
+    return (nickname, uuid)
 
 
 def _is_target_ban_log(message: discord.Message, player: str) -> bool:
@@ -193,7 +223,7 @@ async def handle_cleanduplicates_command(
     
     processing_embed = create_embed(
         title="🧹 중복 제거 중...",
-        description=f"{description}\n⚠️ 최초 로그는 보존되고 중복 로그만 제거됩니다.",
+        description=f"{description}\n⚠️ 닉네임과 UUID를 식별하여 각 플레이어의 최초 로그는 보존되고 중복 로그만 제거됩니다.",
         color=0xF39C12,
         ctx=ctx
     )
