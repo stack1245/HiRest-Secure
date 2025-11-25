@@ -1,3 +1,4 @@
+"""추천 정보 확인 명령어."""
 import asyncio
 import logging
 from typing import Dict, Any, Optional
@@ -15,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 async def check_vote_info_async(vote_id: str, server_id: str = "16262-ilunar.kr") -> Dict[str, str]:
+    """추천 정보 비동기 조회."""
     url = f"https://minelist.kr/servers/{server_id}/votes/{vote_id}"
     
     driver = None
@@ -42,6 +44,7 @@ async def check_vote_info_async(vote_id: str, server_id: str = "16262-ilunar.kr"
 
 
 def _fetch_vote_info(url: str, chrome_options: Options) -> Dict[str, str]:
+    """추천 정보 페치 (동기 실행)."""
     driver = None
     try:
         driver = webdriver.Chrome(options=chrome_options)

@@ -1,3 +1,4 @@
+"""채팅 뮤트 명령어."""
 import asyncio
 import logging
 import re
@@ -38,6 +39,7 @@ PERMANENT_KEYWORDS = ["permanent", "perm", "영구", "영원"]
 
 
 def parse_duration(duration_str: str) -> Tuple[int, str]:
+    """뮤트 기간 파싱."""
     if duration_str.lower() in PERMANENT_KEYWORDS:
         return 0, "영구"
     
@@ -55,6 +57,7 @@ def parse_duration(duration_str: str) -> Tuple[int, str]:
 
 
 def _convert_seconds_to_time_format(duration_seconds: int) -> str:
+    """초 단위를 시간 형식으로 변환."""
     if duration_seconds >= 86400:  # 일 단위
         return f"{duration_seconds // 86400}d"
     elif duration_seconds >= 3600:  # 시간 단위
@@ -66,11 +69,10 @@ def _convert_seconds_to_time_format(duration_seconds: int) -> str:
 
 
 async def execute_mute_action(player: str, duration_seconds: int, reason: str, bot, ctx: discord.ApplicationContext) -> bool:
+    """뮤트 실행."""
     try:
         time_str = _convert_seconds_to_time_format(duration_seconds)
         mute_command = f"cmi mute {player} {time_str} {reason}"
-        
-        logger.debug(f"Mute command: '{mute_command}'")
         
         if not await send_ilunar_command(bot, mute_command, ctx):
             logger.error(f"Failed to send mute command for player: {player}")

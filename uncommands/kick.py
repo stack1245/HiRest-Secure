@@ -1,3 +1,4 @@
+"""킥 명령어."""
 import asyncio
 import logging
 
@@ -19,9 +20,9 @@ async def execute_kick_action(
     bot, 
     ctx: discord.ApplicationContext
 ) -> bool:
+    """킥 실행."""
     try:
         kick_command = f"kick {player} {reason}"
-        logger.debug(f"Kick command: '{kick_command}'")
         
         if not await send_ilunar_command(bot, kick_command, ctx):
             logger.error(f"킥 명령 전송 실패: {player}")

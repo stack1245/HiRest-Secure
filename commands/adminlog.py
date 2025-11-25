@@ -1,3 +1,4 @@
+"""관리 기록 명령어."""
 import logging
 from datetime import datetime, timezone, timedelta
 from typing import Optional
@@ -10,13 +11,12 @@ from utils.utils import create_embed
 
 logger = logging.getLogger(__name__)
 
-# 채널 ID 상수
 ENCHANT_LOG_CHANNEL_ID = 1434553344231473272
 ROLLBACK_LOG_CHANNEL_ID = 1434553388820992100
 
 
 def setup(bot: discord.Bot) -> None:
-    """AdminLog 명령어 등록"""
+    """관리기록 명령어 등록."""
     
     @bot.slash_command(
         name="관리기록",
@@ -103,7 +103,7 @@ def setup(bot: discord.Bot) -> None:
             
             # 성공 응답
             await ctx.respond(
-        def setup(bot: discord.Bot) -> None:
+                embed=create_embed(
                     f"✅ {log_type_name} 기록 완료",
                     f"**닉네임:** {닉네임}\n"
                     f"**티켓번호:** t-{티켓번호}\n"

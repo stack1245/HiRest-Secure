@@ -1,3 +1,4 @@
+"""Utility functions for the bot."""
 import asyncio
 import logging
 import re
@@ -21,6 +22,7 @@ def create_embed(
     ctx: Optional[discord.ApplicationContext] = None,
     success: Optional[bool] = None
 ) -> discord.Embed:
+    """임베드 생성."""
     if success is True:
         color = EMBED_SUCCESS
     elif success is False:
@@ -32,6 +34,8 @@ def create_embed(
 
 
 class CommandLogger:
+    """명령어 사용 로거 (현재 비활성화)."""
+    
     @staticmethod
     async def log_command_usage(
         ctx: discord.ApplicationContext,
@@ -43,14 +47,18 @@ class CommandLogger:
 
 
 def validate_minecraft_username(username: str) -> bool:
+    """마인크래프트 사용자명 유효성 검증."""
     if not username or not (3 <= len(username) <= 16):
         return False
     return bool(re.match(r'^[a-zA-Z][a-zA-Z0-9_]*$', username))
 
 
 class ConsoleResponseParser:
+    """콘솔 응답 파싱 유틸리티."""
+    
     @staticmethod
     def parse_player_info(console_output: str) -> Optional[Dict[str, str]]:
+        """콘솔 출력에서 플레이어 정보 추출."""
         try:
             patterns = {
                 'uuid': r'UUID:\s*([a-f0-9-]+)',
@@ -72,6 +80,7 @@ class ConsoleResponseParser:
     
     @staticmethod
     def parse_player_list(console_output: str) -> Dict[str, Any]:
+        """콘솔 출력에서 플레이어 목록 파싱."""
         try:
             data = {
                 "total_players": 0, "max_players": 999,
@@ -109,6 +118,8 @@ class ConsoleResponseParser:
 
 
 class ConsoleResponseHandler:
+    """콘솔 응답 처리 핸들러."""
+    
     def __init__(self, bot, console_channel_id: int) -> None:
         self.bot = bot
         self.console_channel_id = console_channel_id
@@ -117,10 +128,11 @@ class ConsoleResponseHandler:
     async def wait_for_response(
         self, mention: str, timeout: float = 5.0, keywords: Optional[List[str]] = None
     ) -> Optional[str]:
+        """콘솔 채널에서 응답 대기."""
         try:
             channel = self.bot.get_channel(self.console_channel_id)
             if not channel:
-                logger.error(f"[HiRest Secure] 콘솔 채널 없음: {self.console_channel_id}")
+                logger.error(f"콘솔 채널 없음: {self.console_channel_id}")
                 return None
             
             await asyncio.sleep(2.0)
@@ -132,13 +144,13 @@ class ConsoleResponseHandler:
             if blocks:
                 return self._find_matching_block(blocks, keywords)
             
-            logger.warning(f"[HiRest Secure] 콘솔 응답 없음: {mention}")
             return None
         except Exception as e:
-            logger.error(f"[HiRest Secure] 콘솔 응답 대기 오류: {e}")
+            logger.error(f"콘솔 응답 대기 오류: {e}")
             return None
     
     def _extract_console_blocks(self, messages: List) -> List[str]:
+        """메시지에서 콘솔 블록 추출."""
         blocks = []
         lines = []
         in_block = False
@@ -157,6 +169,7 @@ class ConsoleResponseHandler:
         return blocks
     
     def _find_matching_block(self, blocks: List[str], keywords: Optional[List[str]]) -> Optional[str]:
+        """키워드에 맞는 블록 찾기."""
         if keywords:
             for block in reversed(blocks):
                 if any(keyword.lower() in block.lower() for keyword in keywords):

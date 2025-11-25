@@ -1,3 +1,4 @@
+"""Extension loader for dynamically loading bot commands."""
 import os
 from pathlib import Path
 from typing import Any, Dict, List
@@ -6,6 +7,8 @@ from discord.ext import commands
 
 
 class ExtensionLoader:
+    """봇 확장 기능(명령어)을 동적으로 로드."""
+    
     def __init__(self, bot: commands.Bot, module_name: str = "Bot"):
         self.bot = bot
         self.module_name = module_name
@@ -13,6 +16,7 @@ class ExtensionLoader:
         self.failed_extensions: Dict[str, str] = {}
 
     def load_all_extensions(self, commands_dir: str = "commands") -> None:
+        """지정된 디렉토리의 모든 확장 로드."""
         base_path = Path(__file__).parent.parent
         commands_path = base_path / commands_dir
         if not commands_path.exists():
@@ -24,6 +28,7 @@ class ExtensionLoader:
             self.load_extension(extension)
     
     def _discover_extensions(self, commands_path: Path, commands_dir: str) -> List[str]:
+        """유효한 확장 파일 및 디렉토리 검색."""
         extension_files = []
         group_folders = set()
         
@@ -46,20 +51,24 @@ class ExtensionLoader:
         return sorted(extension_files)
     
     def _is_valid_extension_file(self, file_path: Path) -> bool:
+        """유효한 확장 파일인지 확인."""
         return (not file_path.name.startswith('__') and 
                 not file_path.name.startswith('.') and
                 file_path.suffix == '.py')
     
     def _is_valid_extension_directory(self, dir_path: Path) -> bool:
+        """유효한 확장 디렉토리인지 확인."""
         invalid_names = {'__pycache__', '.git'}
         return (not dir_path.name.startswith('__') and 
                 not dir_path.name.startswith('.') and
                 dir_path.name not in invalid_names)
     
     def _has_init_file(self, dir_path: Path) -> bool:
+        """디렉토리에 __init__.py가 있는지 확인."""
         return (dir_path / '__init__.py').exists()
     
     def _get_group_files(self, extension_name: str) -> list[str]:
+        """그룹 확장의 파일 목록 가져오기."""
         base_path = Path(__file__).parent.parent
         folder_path = base_path / extension_name.replace('.', os.sep)
         
@@ -74,6 +83,7 @@ class ExtensionLoader:
         return files
     
     def load_extension(self, extension_name: str) -> tuple[bool, int]:
+        """단일 확장 로드."""
         try:
             self.bot.load_extension(extension_name)
             self.loaded_extensions.append(extension_name)
@@ -85,9 +95,11 @@ class ExtensionLoader:
             return False, len(files) if files else 1
     
     def _get_display_name(self, extension_name: str) -> str:
+        """확장 표시 이름 생성."""
         return extension_name.replace('commands.', '').replace('.', '/')
     
     def reload_extension(self, extension_name: str) -> bool:
+        """확장 재로드."""
         try:
             self.bot.reload_extension(extension_name)
             return True
@@ -95,6 +107,7 @@ class ExtensionLoader:
             return False
 
     def unload_extension(self, extension_name: str) -> bool:
+        """확장 언로드."""
         try:
             self.bot.unload_extension(extension_name)
             if extension_name in self.loaded_extensions:
@@ -104,22 +117,27 @@ class ExtensionLoader:
             return False
     
     def reload_all_extensions(self) -> None:
+        """모든 확장 재로드."""
         success_count = 0
         for extension in self.loaded_extensions.copy():
             if self.reload_extension(extension):
                 success_count += 1
 
     def load_specific_extension(self, extension_path: str) -> bool:
+        """특정 경로의 확장 로드."""
         ok, _ = self.load_extension(extension_path)
         return ok
     
     def get_loaded_extensions(self) -> List[str]:
+        """로드된 확장 목록 반환."""
         return self.loaded_extensions.copy()
     
     def get_failed_extensions(self) -> Dict[str, str]:
+        """실패한 확장 목록 반환."""
         return self.failed_extensions.copy()
     
     def get_extension_status(self) -> Dict[str, Any]:
+        """확장 로드 상태 정보 반환."""
         return {
             'loaded_count': len(self.loaded_extensions),
             'failed_count': len(self.failed_extensions),

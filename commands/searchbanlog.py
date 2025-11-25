@@ -1,3 +1,4 @@
+"""차단 로그 검색 명령어."""
 import asyncio
 import logging
 from typing import List, Dict, Any, Optional
@@ -22,6 +23,7 @@ async def execute_searchbanlog_action(
     bot, 
     ctx: discord.ApplicationContext
 ) -> List[LogEntry]:
+    """차단 로그 검색 실행."""
     from core.config import get_config
     
     config = get_config()

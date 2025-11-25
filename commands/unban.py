@@ -1,3 +1,4 @@
+"""차단 해제 명령어."""
 import asyncio
 import logging
 
@@ -12,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 async def execute_unban_action(player: str, bot, ctx: discord.ApplicationContext) -> bool:
+    """차단 해제 실행."""
     try:
         if not await send_proxy_command(bot, f"unban {player}", ctx):
             return False
@@ -25,6 +27,7 @@ async def execute_unban_action(player: str, bot, ctx: discord.ApplicationContext
 
 
 async def handle_unban_command(ctx: discord.ApplicationContext, player: str) -> None:
+    """차단 해제 명령어 처리."""
     command_logger = CommandLogger()
     
     if not await check_staff_permission(ctx):

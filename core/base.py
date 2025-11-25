@@ -1,3 +1,4 @@
+"""Core base classes and utilities."""
 from dataclasses import dataclass
 from typing import Any, Dict, Generic, Optional, TypeVar
 
@@ -6,7 +7,8 @@ T = TypeVar('T')
 
 @dataclass(frozen=True)
 class CommandResult(Generic[T]):
-
+    """명령어 실행 결과를 담는 불변 데이터 클래스."""
+    
     success: bool
     data: Optional[T] = None
     error_message: Optional[str] = None
@@ -28,6 +30,8 @@ class CommandResult(Generic[T]):
 
 
 class Singleton(type):
+    """싱글톤 패턴 구현을 위한 메타클래스."""
+    
     _instances: Dict[type, Any] = {}
 
     def __call__(cls, *args, **kwargs):

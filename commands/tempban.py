@@ -1,3 +1,4 @@
+"""임시 차단 명령어."""
 import asyncio
 import logging
 from typing import Optional
@@ -19,9 +20,9 @@ DEFAULT_REASON = "사유 없음"
 
 
 async def execute_tempban_action(player: str, duration: str, reason: str, bot, ctx: discord.ApplicationContext) -> bool:
+    """임시 차단 실행."""
     try:
         tempban_command = f"tempban {player} {duration} {reason}"
-        logger.debug(f"Tempban command: '{tempban_command}'")
         
         if not await send_proxy_command(bot, tempban_command, ctx):
             logger.error(f"Failed to send tempban command for player: {player}")
@@ -36,6 +37,7 @@ async def execute_tempban_action(player: str, duration: str, reason: str, bot, c
 
 
 async def handle_tempban_command(ctx: discord.ApplicationContext, player: str, duration: str = "1h", reason: str = DEFAULT_REASON) -> None:
+    """임시 차단 명령어 처리."""
     command_logger = CommandLogger()
     
     if not await check_staff_permission(ctx):
@@ -63,6 +65,7 @@ async def handle_tempban_command(ctx: discord.ApplicationContext, player: str, d
 
 
 def _create_result_embed(player: str, duration: str, reason: str, success: bool, ctx: discord.ApplicationContext) -> discord.Embed:
+    """임시 차단 결과 임베드 생성."""
     if success:
         embed = create_embed(
             title="임시 차단 완료",
@@ -85,6 +88,7 @@ def _create_result_embed(player: str, duration: str, reason: str, success: bool,
 
 
 def setup(bot) -> None:
+    """명령어 등록."""
     @bot.slash_command(name="tempban", description="플레이어를 임시 차단합니다.")
     async def tempban_func(
         ctx: discord.ApplicationContext,

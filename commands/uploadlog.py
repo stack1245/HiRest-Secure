@@ -1,3 +1,4 @@
+"""차단 로그 업로드 명령어."""
 import asyncio
 import logging
 from typing import Dict, Tuple
@@ -15,7 +16,7 @@ MIN_NAME_LEN = 3
 
 
 async def execute_uploadlog_action(player: str, reason: str, bot, ctx: discord.ApplicationContext) -> Tuple[bool, Dict[str, str]]:
-    """플레이어 정보 수집하고 로그만 업로드 (개선된 버전)."""
+    """플레이어 정보 수집 및 로그 업로드."""
     config = get_config()
     
     try:
@@ -47,8 +48,6 @@ async def _collect_player_info_for_log(
     
     for attempt in range(max_retries):
         try:
-            if attempt > 0:
-                logger.info(f"플레이어 정보 재수집 시도 {attempt + 1}/{max_retries}: {player}")
             
             # 콘솔 명령어 전송
             if not await send_console_command(

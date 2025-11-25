@@ -1,3 +1,4 @@
+"""Permission decorators and checks."""
 import discord
 
 from core.config import get_config
@@ -5,6 +6,7 @@ from utils.utils import create_embed
 
 
 async def check_staff_permission(ctx: discord.ApplicationContext) -> bool:
+    """스탭 권한 확인."""
     if not isinstance(ctx.user, discord.Member):
         await ctx.respond("서버 전용 명령어입니다.", ephemeral=True)
         return False

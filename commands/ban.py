@@ -1,3 +1,4 @@
+"""영구 차단 명령어."""
 import asyncio
 import logging
 from typing import Dict, Tuple
@@ -17,6 +18,7 @@ MIN_NAME_LEN = 3
 async def execute_ban_action(
     player: str, reason: str, bot, ctx: discord.ApplicationContext
 ) -> Tuple[bool, Dict[str, str]]:
+    """차단 실행 및 플레이어 정보 수집."""
     config = get_config()
     
     try:
@@ -40,14 +42,11 @@ async def _collect_player_info(
     config,
     max_retries: int = 2
 ) -> Dict[str, str]:
+    """플레이어 정보 수집 (재시도 로직 포함)."""
     from utils.utils import ConsoleResponseHandler, parse_player_info
     
     for attempt in range(max_retries):
         try:
-            if attempt > 0:
-                logger.info(f"플레이어 정보 재수집 시도 {attempt + 1}/{max_retries}: {player}")
-            
-            # 콘솔 명령어 전송
             if not await send_console_command(
                 bot, 
                 f"cmi info {player}", 
@@ -55,12 +54,11 @@ async def _collect_player_info(
                 silent=True
             ):
                 if attempt == max_retries - 1:
-                    logger.warning(f"플레이어 정보 조회 명령어 전송 실패: {player}")
+                    logger.error(f"플레이어 정보 조회 실패: {player}")
                     continue
                 await asyncio.sleep(1)
                 continue
             
-            # 응답 대기 시간 증가 (첫 시도: 5초, 재시도: 7초)
             wait_time = INFO_DELAY + 2.0 + (attempt * 2.0)
             await asyncio.sleep(INFO_DELAY)
             
@@ -69,7 +67,6 @@ async def _collect_player_info(
                 config.ILUNAR_CONSOLE_CHANNEL_ID
             )
             
-            # 키워드를 더 포괄적으로 설정 (Prefix, UUID, Ip 등)
             keywords = [player, "UUID:", "Ip:", "Prefix:", "PlayTime:"]
             console_response = await response_handler.wait_for_response(
                 ctx.user.mention, 
@@ -181,6 +178,7 @@ async def handle_ban_command(
     player: str, 
     reason: str = "사유 없음"
 ) -> None:
+    """차단 명령어 처리."""
     command_logger = CommandLogger()
     
     if not await check_staff_permission(ctx):

@@ -1,3 +1,4 @@
+"""중복 차단 로그 제거 명령어."""
 import asyncio
 import logging
 from typing import List, Dict, Any, Optional
@@ -20,6 +21,7 @@ async def execute_cleanduplicates_action(
     bot, 
     ctx: discord.ApplicationContext
 ) -> Dict[str, int]:
+    """중복 로그 제거 실행."""
     from core.config import get_config
     
     config = get_config()
@@ -50,7 +52,7 @@ async def execute_cleanduplicates_action(
 
 
 async def _clean_player_duplicates(channel, player: str) -> int:
-    # 대상 플레이어의 모든 차단 로그를 UUID별로 그룹화하여 수집
+    """특정 플레이어의 중복 로그 제거."""
     uuid_groups = {}  # key: uuid, value: list of messages
     
     async for message in channel.history(limit=MAX_SEARCH_LIMIT):
@@ -75,7 +77,7 @@ async def _clean_player_duplicates(channel, player: str) -> int:
 
 
 async def _clean_all_duplicates(channel) -> Dict[str, int]:
-    # 모든 차단 로그를 수집하고 (닉네임, UUID) 조합별로 그룹화
+    """모든 플레이어의 중복 로그 제거."""
     player_messages = {}  # key: (nickname, uuid), value: list of messages
     async for message in channel.history(limit=MAX_SEARCH_LIMIT):
         player_info = _extract_player_info(message)

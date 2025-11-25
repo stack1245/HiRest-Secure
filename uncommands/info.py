@@ -1,3 +1,4 @@
+"""플레이어 정보 조회 명령어."""
 import asyncio
 import logging
 import re
@@ -24,6 +25,7 @@ async def execute_info_action(
     bot, 
     ctx: discord.ApplicationContext
 ) -> Dict[str, str]:
+    """플레이어 정보 조회 실행."""
     config = get_config()
     
     try:

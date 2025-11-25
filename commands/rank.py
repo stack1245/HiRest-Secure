@@ -1,3 +1,4 @@
+"""등급 변경 명령어."""
 import asyncio
 import logging
 import discord
@@ -16,9 +17,6 @@ RANKS = {
     "ultra": "ultra",
     "booster": "booster",
     "youtuber": "youtuber",
-    # "mod": "mod",
-    # "admin": "admin",
-    # "owner": "owner"
 }
 
 
@@ -28,13 +26,11 @@ async def execute_rank_action(
     bot, 
     ctx: discord.ApplicationContext
 ) -> bool:
+    """등급 변경 실행."""
     from core.command_bridge import send_ilunar_command
     
     try:
-        # V1 방식: LuckPerms 명령어로 등급 변경
         rank_command = f"lp user {player} parent set {rank}"
-        
-        logger.debug(f"Rank command: \'{rank_command}\'")
         
         rank_success = await send_ilunar_command(bot, rank_command, ctx)
         

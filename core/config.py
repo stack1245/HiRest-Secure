@@ -1,3 +1,4 @@
+"""Bot configuration management."""
 import logging
 import os
 from dataclasses import dataclass
@@ -15,7 +16,8 @@ except Exception:
 
 @dataclass
 class Config:
-
+    """봇 설정을 관리하는 데이터 클래스."""
+    
     DISCORD_TOKEN: str
     TARGET_GUILD_ID: int
     API_REQUEST_CHANNEL_ID: int
@@ -29,16 +31,12 @@ class Config:
     EMBED_FOOTER: str = "HiRest Management Bot"
     
     def __post_init__(self) -> None:
-        logging.basicConfig(
-            level=logging.ERROR,
-            format='%(asctime)s | %(levelname)-8s | %(message)s',
-            datefmt='%H:%M:%S'
-        )
-        
+        """Discord 관련 로거 설정."""
         for logger_name in ['discord', 'discord.client', 'discord.gateway', 'discord.http']:
             logging.getLogger(logger_name).setLevel(logging.ERROR)
     
     def validate_config(self) -> bool:
+        """필수 설정 항목이 모두 존재하는지 검증."""
         required_fields = [
             'DISCORD_TOKEN', 'TARGET_GUILD_ID', 'STAFF_ROLE_ID',
             'API_REQUEST_CHANNEL_ID', 'ILUNAR_CONSOLE_CHANNEL_ID', 'BAN_LOG_CHANNEL_ID'
@@ -50,8 +48,9 @@ class Config:
         return not missing
 
 
-
 def get_config() -> Config:
+    """환경 변수에서 설정을 로드하여 Config 객체 생성."""
+    
     def get_int(key: str, default: Optional[int] = None) -> Optional[int]:
         value = os.getenv(key)
         if not value:
@@ -59,7 +58,6 @@ def get_config() -> Config:
         try:
             return int(value)
         except ValueError:
-            logging.warning(f"{key} 값이 정수가 아님: {value}")
             return default
 
     def get_bool(key: str, default: bool = False) -> bool:

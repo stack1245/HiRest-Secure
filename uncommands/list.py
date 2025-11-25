@@ -1,3 +1,4 @@
+"""온라인 플레이어 목록 명령어."""
 import asyncio
 import logging
 from typing import Dict, Any, List
@@ -31,6 +32,7 @@ RANK_EMOJIS = {
 
 
 async def execute_list_action(bot, ctx: discord.ApplicationContext) -> Dict[str, Any]:
+    """온라인 플레이어 목록 조회 실행."""
     from core.command_bridge import send_console_command
     from core.config import get_config
     from utils.utils import ConsoleResponseHandler

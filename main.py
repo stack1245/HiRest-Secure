@@ -1,5 +1,4 @@
 """HiRest Secure Bot - Server moderation and security bot."""
-from __future__ import annotations
 import asyncio
 import logging
 import discord
@@ -15,23 +14,23 @@ logger = logging.getLogger(__name__)
 
 
 class HiRestSecureBot(discord.Bot):
-    """Bot for server security and moderation tasks."""
+    """서버 보안 및 관리 봇."""
     
     def __init__(self):
         super().__init__(intents=discord.Intents.all())
-        
         self.config = get_config()
         self.extension_loader = ExtensionLoader(self)
         self._commands_loaded = False
     
     async def on_ready(self) -> None:
+        """봇 준비 완료 이벤트."""
         if not self.user:
             return
         
         if not self._commands_loaded:
             try:
                 if not self.config.validate_config():
-                    logger.critical("설정 검증 실패")
+                    logger.error("설정 검증 실패")
                     await self.close()
                     return
                 
@@ -57,6 +56,7 @@ class HiRestSecureBot(discord.Bot):
         ctx: discord.ApplicationContext,
         error: discord.DiscordException
     ) -> None:
+        """명령어 오류 처리."""
         logger.error(f"명령어 오류: {ctx.command.name if ctx.command else '알 수 없음'} - {error}")
         
         try:
@@ -66,11 +66,10 @@ class HiRestSecureBot(discord.Bot):
             pass
     
     async def sync_commands(self, **kwargs):
-        """Sync commands with optional guild restriction for debugging."""
+        """명령어 동기화."""
         try:
             if self.config.DEBUG_MODE and self.config.TARGET_GUILD_ID:
                 guild_ids = [self.config.TARGET_GUILD_ID]
-                
                 for command in self.pending_application_commands:
                     if not command.guild_ids:
                         command.guild_ids = guild_ids
@@ -81,7 +80,7 @@ class HiRestSecureBot(discord.Bot):
 
 
 async def main():
-    """Main entry point for the bot."""
+    """봇 메인 진입점."""
     config = get_config()
     
     if not config.DISCORD_TOKEN:

@@ -1,3 +1,4 @@
+"""직접 명령어 실행."""
 import asyncio
 import logging
 from typing import Any, Dict, List, Optional
@@ -30,6 +31,7 @@ DANGEROUS_COMMANDS = [
 
 
 class CommandModal(discord.ui.Modal, title="서버 명령어 실행"):
+    """명령어 입력 모달."""
     
     def __init__(self) -> None:
         super().__init__()

@@ -1,3 +1,4 @@
+"""추천 보상 지급 명령어."""
 import asyncio
 import logging
 from typing import Dict, Any, Optional
@@ -11,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 async def execute_vote_action(player: str, bot, ctx: discord.ApplicationContext) -> bool:
+    """추천 보상 지급 실행."""
     from core.command_bridge import send_console_command, send_proxy_command
     
     try:
@@ -32,7 +34,7 @@ async def execute_vote_action(player: str, bot, ctx: discord.ApplicationContext)
 
 
 def _validate_player_name(player: str) -> Dict[str, Any]:
-    # 기본 길이 검증
+    """플레이어명 유효성 검증."""
     if len(player) < 3 or len(player) > 16:
         return {
             "valid": False,
@@ -108,6 +110,7 @@ def _create_result_embed(
 
 
 async def handle_vote_command(ctx: discord.ApplicationContext, player: str) -> None:
+    """추천 보상 지급 명령어 처리."""
     command_logger = CommandLogger()
     
     # 권한 체크

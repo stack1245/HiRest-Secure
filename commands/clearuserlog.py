@@ -1,3 +1,4 @@
+"""사용자 차단 로그 삭제 명령어."""
 import asyncio
 import logging
 from typing import Dict, Any, Optional
@@ -19,6 +20,7 @@ async def execute_clearuserlog_action(
     bot, 
     ctx: discord.ApplicationContext
 ) -> int:
+    """사용자 로그 삭제 실행."""
     from core.config import get_config
     
     config = get_config()

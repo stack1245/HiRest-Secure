@@ -1,3 +1,4 @@
+"""도움말 명령어."""
 from typing import Dict, List
 
 import discord

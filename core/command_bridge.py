@@ -1,4 +1,4 @@
-import asyncio
+"""Command bridge for sending commands to different channels."""
 import logging
 from typing import Optional
 
@@ -12,9 +12,11 @@ logger = logging.getLogger(__name__)
 
 
 class CommandBridge:
+    """다른 채널로 명령어를 전달하는 브리지 클래스."""
 
     @staticmethod
     async def get_channel(bot: commands.Bot, channel_id: int, guild_id: int) -> Optional[discord.TextChannel]:
+        """길드에서 텍스트 채널을 가져옴."""
         try:
             guild = bot.get_guild(guild_id)
             if not guild:
@@ -34,6 +36,7 @@ class CommandBridge:
         executor: Optional[str] = None,
         silent: bool = False
     ) -> bool:
+        """지정된 채널에 명령어 전송."""
         if not command or not command.strip():
             return False
 
@@ -52,6 +55,7 @@ class CommandBridge:
 
     @staticmethod
     async def send_proxy_command(bot: commands.Bot, command: str, ctx: discord.ApplicationContext) -> bool:
+        """프록시 명령어 전송."""
         return await CommandBridge.send_command(
             bot,
             f".p {command}",
@@ -62,6 +66,7 @@ class CommandBridge:
 
     @staticmethod
     async def send_ilunar_command(bot: commands.Bot, command: str, ctx: discord.ApplicationContext) -> bool:
+        """ILunar 명령어 전송."""
         return await CommandBridge.send_command(
             bot,
             f".s ilunar {command}",
@@ -72,6 +77,7 @@ class CommandBridge:
 
     @staticmethod
     async def send_console_command(bot: commands.Bot, command: str, executor: str, silent: bool = False) -> bool:
+        """콘솔 명령어 전송."""
         if not config.ILUNAR_CONSOLE_CHANNEL_ID:
             return False
         
@@ -85,12 +91,15 @@ class CommandBridge:
 
 
 async def send_proxy_command(bot: commands.Bot, command: str, ctx: discord.ApplicationContext) -> bool:
+    """프록시 명령어 전송 (하위 호환성)."""
     return await CommandBridge.send_proxy_command(bot, command, ctx)
 
 
 async def send_ilunar_command(bot: commands.Bot, command: str, ctx: discord.ApplicationContext) -> bool:
+    """ILunar 명령어 전송 (하위 호환성)."""
     return await CommandBridge.send_ilunar_command(bot, command, ctx)
 
 
 async def send_console_command(bot: commands.Bot, command: str, executor: str, silent: bool = False) -> bool:
+    """콘솔 명령어 전송 (하위 호환성)."""
     return await CommandBridge.send_console_command(bot, command, executor, silent)

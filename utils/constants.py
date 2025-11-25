@@ -1,5 +1,4 @@
-"""HiRest 보안 봇 상수"""
-from __future__ import annotations
+"""Constants and predefined options."""
 from typing import List
 import discord
 
@@ -17,7 +16,6 @@ __all__ = [
     "MUTE_DURATION_OPTIONS",
     "MUTE_REASON_OPTIONS",
     "KICK_REASON_OPTIONS",
-    "create_autocomplete",
 ]
 
 COLORS = {

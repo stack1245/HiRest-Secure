@@ -1,3 +1,4 @@
+"""닉네임 변경 명령어."""
 import asyncio
 import logging
 import re
@@ -26,13 +27,11 @@ async def execute_nick_action(
     bot, 
     ctx: discord.ApplicationContext
 ) -> bool:
+    """닉네임 변경 실행."""
     from core.command_bridge import send_ilunar_command
     
     try:
-        # 사양서 기준: .s ilunar cmi nick <code> <player>
         nick_command = f"cmi nick {code} {player}"
-        
-        logger.debug(f"Nick command: \'{nick_command}\'")
         
         nick_success = await send_ilunar_command(bot, nick_command, ctx)
         
@@ -48,6 +47,7 @@ async def execute_nick_action(
 
 
 def _validate_nickname(code: str) -> Dict[str, Any]:
+    """닉네임 유효성 검증."""
     # 띄어쓰기 검증 (사양서 제약사항)
     if ' ' in code:
         return {

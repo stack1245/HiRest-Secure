@@ -1,3 +1,4 @@
+"""채팅 뮤트 해제 명령어."""
 import asyncio
 import logging
 
@@ -12,9 +13,9 @@ logger = logging.getLogger(__name__)
 
 
 async def execute_unmute_action(player: str, bot, ctx: discord.ApplicationContext) -> bool:
+    """뮤트 해제 실행."""
     try:
         unmute_command = f"cmi unmute {player}"
-        logger.debug(f"Unmute command: '{unmute_command}'")
         
         if not await send_ilunar_command(bot, unmute_command, ctx):
             logger.error(f"Failed to send unmute command for player: {player}")
@@ -29,6 +30,7 @@ async def execute_unmute_action(player: str, bot, ctx: discord.ApplicationContex
 
 
 async def handle_unmute_command(ctx: discord.ApplicationContext, player: str) -> None:
+    """뮤트 해제 명령어 처리."""
     command_logger = CommandLogger()
     
     if not await check_staff_permission(ctx):
