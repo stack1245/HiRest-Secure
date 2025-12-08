@@ -23,11 +23,20 @@ async def check_vote_info_async(vote_id: str, server_id: str = "16262-ilunar.kr"
     try:
         # Chrome 옵션 설정
         chrome_options = Options()
-        chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--headless=new')  # 새로운 헤드리스 모드
         chrome_options.add_argument('--no-sandbox')
         chrome_options.add_argument('--disable-dev-shm-usage')
+        chrome_options.add_argument('--disable-gpu')
+        chrome_options.add_argument('--disable-software-rasterizer')
+        chrome_options.add_argument('--disable-extensions')
         chrome_options.add_argument('--disable-blink-features=AutomationControlled')
+        chrome_options.add_argument('--window-size=1920,1080')
+        chrome_options.add_argument('--remote-debugging-port=9222')
         chrome_options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
+        
+        # 로그 레벨 설정
+        chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
+        chrome_options.add_experimental_option('useAutomationExtension', False)
         
         # 비동기 실행을 위해 별도 스레드에서 실행
         loop = asyncio.get_event_loop()
@@ -47,8 +56,28 @@ def _fetch_vote_info(url: str, chrome_options: Options) -> Dict[str, str]:
     """추천 정보 페치 (동기 실행)."""
     driver = None
     try:
-        driver = webdriver.Chrome(options=chrome_options)
+        from selenium.webdriver.chrome.service import Service
+        from selenium.webdriver.common.by import By
+        from selenium.webdriver.support.ui import WebDriverWait
+        from selenium.webdriver.support import expected_conditions as EC
+        from webdriver_manager.chrome import ChromeDriverManager
+        
+        # ChromeDriver 서비스 생성 (자동 버전 관리)
+        service = Service(ChromeDriverManager().install())
+        service.log_path = 'NUL'  # Windows에서 로그 숨김
+        
+        driver = webdriver.Chrome(service=service, options=chrome_options)
+        driver.set_page_load_timeout(30)
         driver.get(url)
+        
+        # 페이지 로딩 대기
+        try:
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.TAG_NAME, "body"))
+            )
+        except:
+            pass
+        
         time.sleep(3)
         
         page_source = driver.page_source
