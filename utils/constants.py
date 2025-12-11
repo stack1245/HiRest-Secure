@@ -1,39 +1,36 @@
-"""Constants and predefined options."""
+"""상수 정의"""
+from __future__ import annotations
+from pathlib import Path
 from typing import List
 import discord
 
-__all__ = [
-    "COLORS",
-    "DEFAULT_ACTIVITY_NAME",
-    "AUTO_SAVE_INTERVAL",
-    "COMMAND_DELAY",
-    "PROCESSING_DELAY",
-    "INFO_DELAY",
-    "CONSOLE_RESPONSE_DELAY",
-    "TEMPBAN_DURATION_OPTIONS",
-    "TEMPBAN_REASON_OPTIONS",
-    "BAN_REASON_OPTIONS",
-    "MUTE_DURATION_OPTIONS",
-    "MUTE_REASON_OPTIONS",
-    "KICK_REASON_OPTIONS",
-]
+# 경로
+DATA_DIR = Path(__file__).parent.parent / "data"
 
+# 색상 (0xRRGGBB 형식)
 COLORS = {
     "ERROR": 0xE74C3C,
     "SUCCESS": 0x2ECC71,
     "INFO": 0x3498DB,
+    "WARNING": 0xF39C12,
     "NEUTRAL": 0x95A5A6,
-    "QUEUE": 0x3498DB,
-    "KARAOKE": 0x9B59B6,
 }
 
+# 봇 설정
 DEFAULT_ACTIVITY_NAME: str = "HiRest Secure"
 AUTO_SAVE_INTERVAL: int | None = None
 
-COMMAND_DELAY = 1
-PROCESSING_DELAY = 1
-INFO_DELAY = 3
-CONSOLE_RESPONSE_DELAY = 5
+# 기본 설정
+DEFAULT_SETTINGS = {
+    "log_channel_id": None,
+    "manager_ids": [],
+}
+
+# 지연 시간
+COMMAND_DELAY: int = 1
+PROCESSING_DELAY: int = 1
+INFO_DELAY: int = 3
+CONSOLE_RESPONSE_DELAY: int = 5
 
 TEMPBAN_DURATION_OPTIONS: List[str] = [
     "30m", "1h", "2h", "3h", "6h", "12h",
@@ -126,9 +123,15 @@ mute_reason_autocomplete = _create_autocomplete(MUTE_REASON_OPTIONS)
 kick_reason_autocomplete = _create_autocomplete(KICK_REASON_OPTIONS)
 
 __all__ = [
+    "DATA_DIR",
     "COLORS",
     "DEFAULT_ACTIVITY_NAME",
     "AUTO_SAVE_INTERVAL",
+    "DEFAULT_SETTINGS",
+    "COMMAND_DELAY",
+    "PROCESSING_DELAY",
+    "INFO_DELAY",
+    "CONSOLE_RESPONSE_DELAY",
     "TEMPBAN_DURATION_OPTIONS",
     "TEMPBAN_REASON_OPTIONS",
     "BAN_REASON_OPTIONS",

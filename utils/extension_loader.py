@@ -1,4 +1,5 @@
-"""Extension loader for dynamically loading bot commands."""
+"""확장 로더"""
+from __future__ import annotations
 import os
 from pathlib import Path
 from typing import Any, Dict, List
@@ -7,7 +8,7 @@ from discord.ext import commands
 
 
 class ExtensionLoader:
-    """봇 확장 기능(명령어)을 동적으로 로드."""
+    """명령어 확장 동적 로드"""
     
     def __init__(self, bot: commands.Bot, module_name: str = "Bot"):
         self.bot = bot
@@ -16,7 +17,7 @@ class ExtensionLoader:
         self.failed_extensions: Dict[str, str] = {}
 
     def load_all_extensions(self, commands_dir: str = "commands") -> None:
-        """지정된 디렉토리의 모든 확장 로드."""
+        """모든 확장 로드"""
         base_path = Path(__file__).parent.parent
         commands_path = base_path / commands_dir
         if not commands_path.exists():
@@ -28,7 +29,7 @@ class ExtensionLoader:
             self.load_extension(extension)
     
     def _discover_extensions(self, commands_path: Path, commands_dir: str) -> List[str]:
-        """유효한 확장 파일 및 디렉토리 검색."""
+        """확장 파일 검색"""
         extension_files = []
         group_folders = set()
         
@@ -51,24 +52,24 @@ class ExtensionLoader:
         return sorted(extension_files)
     
     def _is_valid_extension_file(self, file_path: Path) -> bool:
-        """유효한 확장 파일인지 확인."""
+        """유효 파일 확인"""
         return (not file_path.name.startswith('__') and 
                 not file_path.name.startswith('.') and
                 file_path.suffix == '.py')
     
     def _is_valid_extension_directory(self, dir_path: Path) -> bool:
-        """유효한 확장 디렉토리인지 확인."""
+        """유효 디렉토리 확인"""
         invalid_names = {'__pycache__', '.git'}
         return (not dir_path.name.startswith('__') and 
                 not dir_path.name.startswith('.') and
                 dir_path.name not in invalid_names)
     
     def _has_init_file(self, dir_path: Path) -> bool:
-        """디렉토리에 __init__.py가 있는지 확인."""
+        """__init__.py 파일 확인"""
         return (dir_path / '__init__.py').exists()
     
     def _get_group_files(self, extension_name: str) -> list[str]:
-        """그룹 확장의 파일 목록 가져오기."""
+        """그룹 파일 목록 가져오기"""
         base_path = Path(__file__).parent.parent
         folder_path = base_path / extension_name.replace('.', os.sep)
         
@@ -83,7 +84,7 @@ class ExtensionLoader:
         return files
     
     def load_extension(self, extension_name: str) -> tuple[bool, int]:
-        """단일 확장 로드."""
+        """확장 로드"""
         try:
             self.bot.load_extension(extension_name)
             self.loaded_extensions.append(extension_name)
@@ -95,7 +96,7 @@ class ExtensionLoader:
             return False, len(files) if files else 1
     
     def _get_display_name(self, extension_name: str) -> str:
-        """확장 표시 이름 생성."""
+        """확장 표시명 생성"""
         return extension_name.replace('commands.', '').replace('.', '/')
     
     def reload_extension(self, extension_name: str) -> bool:
