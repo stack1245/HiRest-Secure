@@ -4,13 +4,14 @@ import asyncio
 import logging
 import os
 from typing import Optional
+
 import discord
 from dotenv import load_dotenv
 
 from utils.extension_loader import ExtensionLoader
 from utils.constants import DEFAULT_ACTIVITY_NAME
 from utils.graceful_shutdown import setup_graceful_shutdown, register_shutdown_callback
-from utils.logging import configure_logging
+from utils.logging_config import configure_logging
 from core.config import get_config
 
 load_dotenv()
@@ -20,11 +21,11 @@ logger = logging.getLogger(__name__)
 
 class HiRestSecureBot(discord.Bot):
     """서버 보안 및 모더레이션"""
-    
-    def __init__(self):
+
+    def __init__(self) -> None:
         intents = discord.Intents.all()
         super().__init__(intents=intents)
-        
+
         self.config = get_config()
         self.extension_loader = ExtensionLoader(self)
         self._commands_loaded = False
@@ -60,13 +61,13 @@ class HiRestSecureBot(discord.Bot):
             logger.error(f"상태 변경 실패: {e}")
     
     async def on_application_command_error(
-        self,
-        ctx: discord.ApplicationContext,
-        error: discord.DiscordException
+        self, ctx: discord.ApplicationContext, error: discord.DiscordException
     ) -> None:
         """명령어 오류 처리"""
-        logger.error(f"명령어 오류: {ctx.command.name if ctx.command else '알 수 없음'} - {error}")
-        
+        logger.error(
+            f"명령어 오류: {ctx.command.name if ctx.command else 'unknown'} - {error}"
+        )
+
         try:
             if not ctx.response.is_done():
                 await ctx.respond(f"오류가 발생했습니다: {error}", ephemeral=True)
@@ -92,27 +93,25 @@ class HiRestSecureBot(discord.Bot):
         await super().close()
 
 
-def main():
+def main() -> None:
     """봇 실행"""
     config = get_config()
     if not config.DISCORD_TOKEN:
         logger.error("DISCORD_TOKEN이 설정되지 않았습니다.")
         return
-    
+
     bot = HiRestSecureBot()
-    
-    def shutdown_handler():
+
+    def shutdown_handler() -> None:
         asyncio.create_task(bot.close())
-    
+
     register_shutdown_callback(shutdown_handler)
     setup_graceful_shutdown()
-    
+
     try:
         bot.run(config.DISCORD_TOKEN)
     except KeyboardInterrupt:
         pass
-    finally:
-        logger.info("봇 종료됨")
 
 
 if __name__ == "__main__":

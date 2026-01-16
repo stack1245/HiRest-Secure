@@ -1,16 +1,20 @@
 """확장 로더"""
 from __future__ import annotations
+
+import logging
 import os
 from pathlib import Path
 from typing import Any, Dict, List
 
 from discord.ext import commands
 
+logger = logging.getLogger(__name__)
+
 
 class ExtensionLoader:
     """명령어 확장 동적 로드"""
     
-    def __init__(self, bot: commands.Bot, module_name: str = "Bot"):
+    def __init__(self, bot: commands.Bot, module_name: str = "Bot") -> None:
         self.bot = bot
         self.module_name = module_name
         self.loaded_extensions: List[str] = []
@@ -52,26 +56,101 @@ class ExtensionLoader:
         return sorted(extension_files)
     
     def _is_valid_extension_file(self, file_path: Path) -> bool:
-        """유효 파일 확인"""
+        """유효한 확장 파일인지 확인"""
         return (not file_path.name.startswith('__') and 
                 not file_path.name.startswith('.') and
                 file_path.suffix == '.py')
     
     def _is_valid_extension_directory(self, dir_path: Path) -> bool:
-        """유효 디렉토리 확인"""
+        """유효한 확장 디렉토리인지 확인"""
         invalid_names = {'__pycache__', '.git'}
         return (not dir_path.name.startswith('__') and 
                 not dir_path.name.startswith('.') and
                 dir_path.name not in invalid_names)
     
     def _has_init_file(self, dir_path: Path) -> bool:
-        """__init__.py 파일 확인"""
+        """__init__.py 파일이 있는지 확인"""
         return (dir_path / '__init__.py').exists()
     
-    def _get_group_files(self, extension_name: str) -> list[str]:
+    def _get_group_files(self, extension_name: str) -> List[str]:
         """그룹 파일 목록 가져오기"""
         base_path = Path(__file__).parent.parent
         folder_path = base_path / extension_name.replace('.', os.sep)
+        
+        if not folder_path.exists():
+            return []
+        
+        files = []
+        for file_path in sorted(folder_path.glob('*.py')):
+            if self._is_valid_extension_file(file_path):
+                files.append(file_path.stem)
+        
+        return files
+    
+    def load_extension(self, extension_name: str) -> tuple[bool, int]:
+        """확장 로드"""
+        try:
+            self.bot.load_extension(extension_name)
+            self.loaded_extensions.append(extension_name)
+            files = self._get_group_files(extension_name)
+            return True, len(files) if files else 1
+        except Exception as e:
+            self.failed_extensions[extension_name] = str(e)
+            logger.error(f"확장 로드 실패: {extension_name} - {e}")
+            files = self._get_group_files(extension_name)
+            return False, len(files) if files else 1
+    
+    def _get_display_name(self, extension_name: str) -> str:
+        """표시 이름 가져오기"""
+        return extension_name.replace('commands.', '').replace('.', '/')
+    
+    def reload_extension(self, extension_name: str) -> bool:
+        """확장 리로드"""
+        try:
+            self.bot.reload_extension(extension_name)
+            return True
+        except Exception as e:
+            logger.error(f"확장 리로드 실패: {extension_name} - {e}")
+            return False
+
+    def unload_extension(self, extension_name: str) -> bool:
+        """확장 언로드"""
+        try:
+            self.bot.unload_extension(extension_name)
+            if extension_name in self.loaded_extensions:
+                self.loaded_extensions.remove(extension_name)
+            return True
+        except Exception as e:
+            logger.error(f"확장 언로드 실패: {extension_name} - {e}")
+            return False
+    
+    def reload_all_extensions(self) -> None:
+        """모든 확장 리로드"""
+        for extension in self.loaded_extensions.copy():
+            self.reload_extension(extension)
+
+    def load_specific_extension(self, extension_path: str) -> bool:
+        """특정 확장 로드"""
+        ok, _ = self.load_extension(extension_path)
+        return ok
+    
+    def get_loaded_extensions(self) -> List[str]:
+        """로드된 확장 목록"""
+        return self.loaded_extensions.copy()
+    
+    def get_failed_extensions(self) -> Dict[str, str]:
+        """실패한 확장 목록"""
+        return self.failed_extensions.copy()
+    
+    def get_extension_status(self) -> Dict[str, Any]:
+        """확장 상태"""
+        return {
+            'loaded_count': len(self.loaded_extensions),
+            'failed_count': len(self.failed_extensions),
+            'loaded_extensions': self.get_loaded_extensions(),
+            'failed_extensions': self.get_failed_extensions()
+        }
+
         
         if not folder_path.exists():
             return []

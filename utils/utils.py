@@ -1,4 +1,6 @@
-"""Utility functions for the bot."""
+"""유틸리티 함수 모음"""
+from __future__ import annotations
+
 import asyncio
 import logging
 import re
@@ -22,7 +24,18 @@ def create_embed(
     ctx: Optional[discord.ApplicationContext] = None,
     success: Optional[bool] = None
 ) -> discord.Embed:
-    """임베드 생성."""
+    """임베드 생성.
+    
+    Args:
+        title: 임베드 제목
+        description: 임베드 설명
+        color: 임베드 색상
+        ctx: 명령어 컨텍스트 (미사용)
+        success: 성공/실패 여부에 따른 자동 색상 설정
+        
+    Returns:
+        생성된 Discord 임베드
+    """
     if success is True:
         color = EMBED_SUCCESS
     elif success is False:
@@ -43,11 +56,19 @@ class CommandLogger:
         parameters: Dict[str, Any],
         success: bool
     ) -> None:
+        """명령어 사용 로그 기록 (구현되지 않음)"""
         pass
 
 
 def validate_minecraft_username(username: str) -> bool:
-    """마인크래프트 사용자명 유효성 검증."""
+    """마인크래프트 사용자명 유효성 검증.
+    
+    Args:
+        username: 검증할 사용자명
+        
+    Returns:
+        유효한 사용자명 여부
+    """
     if not username or not (3 <= len(username) <= 16):
         return False
     return bool(re.match(r'^[a-zA-Z][a-zA-Z0-9_]*$', username))
@@ -58,7 +79,14 @@ class ConsoleResponseParser:
     
     @staticmethod
     def parse_player_info(console_output: str) -> Optional[Dict[str, str]]:
-        """콘솔 출력에서 플레이어 정보 추출."""
+        """콘솔 출력에서 플레이어 정보 추출.
+        
+        Args:
+            console_output: 파싱할 콘솔 출력
+            
+        Returns:
+            플레이어 정보 또는 None
+        """
         try:
             patterns = {
                 'uuid': r'UUID:\s*([a-f0-9-]+)',
@@ -67,7 +95,7 @@ class ConsoleResponseParser:
                 'playtime': r'PlayTime:\s*(.+)'
             }
             
-            info = {}
+            info: Dict[str, str] = {}
             for key, pattern in patterns.items():
                 match = re.search(pattern, console_output, re.IGNORECASE)
                 if match:
@@ -80,9 +108,16 @@ class ConsoleResponseParser:
     
     @staticmethod
     def parse_player_list(console_output: str) -> Dict[str, Any]:
-        """콘솔 출력에서 플레이어 목록 파싱."""
+        """콘솔 출력에서 플레이어 목록 파싱.
+        
+        Args:
+            console_output: 파싱할 콘솔 출력
+            
+        Returns:
+            플레이어 목록 정보
+        """
         try:
-            data = {
+            data: Dict[str, Any] = {
                 "total_players": 0, "max_players": 999,
                 "special": [], "default": [], "premium": [], "lite": [],
                 "ultra": [], "booster": [], "youtuber": [], "mod": [],
@@ -120,15 +155,33 @@ class ConsoleResponseParser:
 class ConsoleResponseHandler:
     """콘솔 응답 처리 핸들러."""
     
-    def __init__(self, bot, console_channel_id: int) -> None:
+    def __init__(self, bot: object, console_channel_id: int) -> None:
+        """초기화.
+        
+        Args:
+            bot: Discord 봇
+            console_channel_id: 콘솔 채널 ID
+        """
         self.bot = bot
         self.console_channel_id = console_channel_id
         self.parser = ConsoleResponseParser()
     
     async def wait_for_response(
-        self, mention: str, timeout: float = 5.0, keywords: Optional[List[str]] = None
+        self,
+        mention: str,
+        timeout: float = 5.0,
+        keywords: Optional[List[str]] = None
     ) -> Optional[str]:
-        """콘솔 채널에서 응답 대기."""
+        """콘솔 채널에서 응답 대기.
+        
+        Args:
+            mention: 언급 (미사용)
+            timeout: 타임아웃 (초)
+            keywords: 검색 키워드
+            
+        Returns:
+            콘솔 응답 또는 None
+        """
         try:
             channel = self.bot.get_channel(self.console_channel_id)
             if not channel:
@@ -150,9 +203,16 @@ class ConsoleResponseHandler:
             return None
     
     def _extract_console_blocks(self, messages: List) -> List[str]:
-        """메시지에서 콘솔 블록 추출."""
-        blocks = []
-        lines = []
+        """메시지에서 콘솔 블록 추출.
+        
+        Args:
+            messages: 메시지 목록
+            
+        Returns:
+            콘솔 블록 목록
+        """
+        blocks: List[str] = []
+        lines: List[str] = []
         in_block = False
         separators = ["========================", "--------------------------------------------------"]
         
@@ -168,8 +228,20 @@ class ConsoleResponseHandler:
         
         return blocks
     
-    def _find_matching_block(self, blocks: List[str], keywords: Optional[List[str]]) -> Optional[str]:
-        """키워드에 맞는 블록 찾기."""
+    def _find_matching_block(
+        self,
+        blocks: List[str],
+        keywords: Optional[List[str]]
+    ) -> Optional[str]:
+        """키워드에 맞는 블록 찾기.
+        
+        Args:
+            blocks: 블록 목록
+            keywords: 검색 키워드
+            
+        Returns:
+            일치하는 블록 또는 None
+        """
         if keywords:
             for block in reversed(blocks):
                 if any(keyword.lower() in block.lower() for keyword in keywords):
@@ -179,7 +251,15 @@ class ConsoleResponseHandler:
 
 
 def parse_player_info(console_output: str, player: str) -> Optional[Dict[str, str]]:
-    """콘솔 출력에서 플레이어 정보 파싱."""
+    """콘솔 출력에서 플레이어 정보 파싱.
+    
+    Args:
+        console_output: 파싱할 콘솔 출력
+        player: 플레이어명
+        
+    Returns:
+        플레이어 정보 또는 None
+    """
     try:
         logger.debug(f"원본 콘솔 출력 (첫 500자):\n{console_output[:500]}")
         
