@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from utils.extension_loader import ExtensionLoader
 from utils.constants import DEFAULT_ACTIVITY_NAME
 from utils.graceful_shutdown import setup_graceful_shutdown, register_shutdown_callback
-from utils.logging_config import configure_logging
+from utils.logging import configure_logging
 from core.config import get_config
 
 load_dotenv()
@@ -50,8 +50,8 @@ class HiRestSecureBot(discord.Bot):
         if not self.config.validate_config():
             raise RuntimeError("설정 검증 실패")
         
-        self.extension_loader.load_extension_groups("commands")
-        self.extension_loader.load_extension_groups("uncommands")
+        self.extension_loader.load_all_extensions("commands")
+        self.extension_loader.load_all_extensions("uncommands")
         if self.extension_loader.failed_extensions:
             for ext_name, error in self.extension_loader.failed_extensions:
                 logger.error(f"명령어 로드 실패: {ext_name}\n{error}")
@@ -110,9 +110,6 @@ class HiRestSecureBot(discord.Bot):
 
 def main() -> None:
     """봇 실행"""
-    if sys.platform == 'win32':
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    
     config = get_config()
     if not config.DISCORD_TOKEN:
         logger.error("DISCORD_TOKEN 미설정")
