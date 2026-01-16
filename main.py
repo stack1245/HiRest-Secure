@@ -1,9 +1,8 @@
-"""HiRest 보안 봇"""
+"""HiRest 보안 모더레이션 봇"""
 from __future__ import annotations
 import asyncio
-import logging
 import os
-from typing import Optional
+import sys
 
 import discord
 from dotenv import load_dotenv
@@ -16,11 +15,13 @@ from core.config import get_config
 
 load_dotenv()
 configure_logging()
+
+import logging
 logger = logging.getLogger(__name__)
 
 
 class HiRestSecureBot(discord.Bot):
-    """서버 보안 및 모더레이션"""
+    """서버 보안, 모더레이션 및 관리"""
 
     def __init__(self) -> None:
         intents = discord.Intents.all()
@@ -28,29 +29,34 @@ class HiRestSecureBot(discord.Bot):
 
         self.config = get_config()
         self.extension_loader = ExtensionLoader(self)
-        self._commands_loaded = False
-        self._auto_save_task: Optional[asyncio.Task] = None
+        self._initialized = False
+        self._auto_save_task: asyncio.Task | None = None
     
     async def on_ready(self) -> None:
         """봇 준비 완료"""
-        if not self.user:
+        if self._initialized or not self.user:
             return
         
-        if not self._commands_loaded:
-            try:
-                if not self.config.validate_config():
-                    logger.error("설정 검증 실패")
-                    await self.close()
-                    return
-                
-                self.extension_loader.load_all_extensions("commands")
-                self.extension_loader.load_all_extensions("uncommands")
-                await self.sync_commands()
-                self._commands_loaded = True
-                print(f"[{self.user.name}] 준비 완료")
-            except Exception as e:
-                logger.error(f"초기화 실패: {e}")
-                return
+        try:
+            await self._initialize()
+            self._initialized = True
+            print(f"[{self.user.name}] 준비 완료")
+        except Exception as e:
+            logger.error(f"초기화 실패: {e}", exc_info=e)
+            await self.close()
+    
+    async def _initialize(self) -> None:
+        """초기화 로직"""
+        if not self.config.validate_config():
+            raise RuntimeError("설정 검증 실패")
+        
+        self.extension_loader.load_extension_groups("commands")
+        self.extension_loader.load_extension_groups("uncommands")
+        if self.extension_loader.failed_extensions:
+            for ext_name, error in self.extension_loader.failed_extensions:
+                logger.error(f"명령어 로드 실패: {ext_name}\n{error}")
+        
+        await self.sync_commands()
         
         try:
             await self.change_presence(
@@ -58,19 +64,23 @@ class HiRestSecureBot(discord.Bot):
                 activity=discord.Game(name=DEFAULT_ACTIVITY_NAME)
             )
         except Exception as e:
-            logger.error(f"상태 변경 실패: {e}")
+            logger.error(f"상태 변경 오류: {e}")
     
     async def on_application_command_error(
-        self, ctx: discord.ApplicationContext, error: discord.DiscordException
+        self,
+        context: discord.ApplicationContext,
+        error: discord.DiscordException
     ) -> None:
         """명령어 오류 처리"""
-        logger.error(
-            f"명령어 오류: {ctx.command.name if ctx.command else 'unknown'} - {error}"
-        )
+        logger.error(f"명령어 오류: {error}", exc_info=error)
 
         try:
-            if not ctx.response.is_done():
-                await ctx.respond(f"오류가 발생했습니다: {error}", ephemeral=True)
+            embed = discord.Embed(
+                description=f"오류 발생: {str(error)[:100]}",
+                color=0xE74C3C
+            )
+            if not context.response.is_done():
+                await context.respond(embed=embed, ephemeral=True)
         except Exception:
             pass
     
@@ -88,21 +98,29 @@ class HiRestSecureBot(discord.Bot):
     
     async def close(self) -> None:
         """봇 종료 처리"""
-        if self._auto_save_task:
+        if self._auto_save_task and not self._auto_save_task.done():
             self._auto_save_task.cancel()
+            try:
+                await self._auto_save_task
+            except asyncio.CancelledError:
+                pass
+        
         await super().close()
 
 
 def main() -> None:
     """봇 실행"""
+    if sys.platform == 'win32':
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    
     config = get_config()
     if not config.DISCORD_TOKEN:
-        logger.error("DISCORD_TOKEN이 설정되지 않았습니다.")
+        logger.error("DISCORD_TOKEN 미설정")
         return
 
     bot = HiRestSecureBot()
 
-    def shutdown_handler() -> None:
+    def shutdown_handler():
         asyncio.create_task(bot.close())
 
     register_shutdown_callback(shutdown_handler)
